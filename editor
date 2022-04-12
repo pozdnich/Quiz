@@ -1,0 +1,287 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UnderToProgramm;
+
+namespace QuizEditor
+{
+    class editor
+    {
+        private string _log1 = "admin";
+        private string _password1 = "123";
+        public string Log1 { get => _log1; }
+        public string Password1 { get => _password1; }
+        public bool into(string a)
+        {
+            foreach (var item in a)
+            {
+                if (!char.IsDigit(item))
+                    return true; 
+            }
+            return false;
+        }
+        //создание новой викторины(темы)
+        public Quiz addQize(Quiz quiz)
+        {
+            int kol;
+            string kolS;
+            string topic;
+            string question;
+            string answer;
+            string znachStr;
+            bool znach;
+            Dictionary<string, Dictionary<string, bool>> questions = new Dictionary<string, Dictionary<string, bool>>();
+            Dictionary<string, bool> answers = new Dictionary<string, bool>();
+            Console.WriteLine("Сейчас будет создана новая тема");
+            Console.WriteLine("Введите количество вопросов для новой темы!(не меньше 20)");
+            do
+            {
+                do
+                {
+                    kolS = Console.ReadLine();
+                } while (into(kolS));
+                kol = int.Parse(kolS);
+            } while (kol < 20);
+            Console.WriteLine("Введите название новой темы!");
+            topic = Console.ReadLine();
+            quiz.addNewTop(topic);
+            for (int i = 0; i < kol; i++)
+            {
+                Console.Clear();
+                Console.WriteLine("Введите вопрос по данной теме! Его номер " + (i + 1)+" (Вопроссы должны быть разными!)");
+                question = Console.ReadLine();
+                Console.Clear();
+                Console.WriteLine("Введите сейчас четыре ответа и их bool значение, то есть он правельный или нет(true/false).Так же помните как минимум один должен быть true и ответы не должны быть идентичны в одном вопросе ");
+                bool four = true;
+                answers = new Dictionary<string, bool>();
+                do
+                {
+                    for (int a = 0; a < 4; a++)
+                    {
+                        Console.Write("Ответ->");
+                        answer = Console.ReadLine();
+                        Console.Write("Его bool значение->");
+                        do
+                        {
+                            znachStr = Console.ReadLine();
+                        } while (znachStr != "true" && znachStr != "false");
+                        znach = bool.Parse(znachStr);
+                        answers.Add(answer, znach);
+                        if (znach == true)
+                        {
+                            four = false;
+                        }
+                    }
+                    if (four == true)
+                    {
+                        answers = new Dictionary<string, bool>();
+                        Console.Clear();
+                        Console.WriteLine("Вы ввели ни одного значения true, заново введите четыре ответа и на этот раз как минимум одно значение true");
+                    }
+                } while (four);
+                questions.Add(question, answers);
+            }
+            quiz.Qize.Add(topic, questions);
+            return quiz;
+        }
+        //создание нового вопроса для конкретной темы
+        public Quiz addQizeQuestion(Quiz quiz)
+        {
+            string question;
+            string answer;
+            string znachStr;
+            bool znach;
+            Dictionary<string, Dictionary<string, bool>> questions= new Dictionary<string, Dictionary<string, bool>>();
+            Dictionary<string, bool> answers = new Dictionary<string, bool>();
+            if (quiz.Qize.Count != 0)
+            {
+                Console.WriteLine("Введите тему которой хотите довавить вопрос!");
+                int vib;
+                string vibS;
+                int schik = 0;
+                foreach (var name in quiz.Qize)
+                {
+                    schik++;
+                    Console.WriteLine($"{schik} - {name.Key}");
+                }
+                do
+                {
+                    do
+                    {
+                        vibS = Console.ReadLine();
+                    } while (into(vibS));
+                    vib = (int.Parse(vibS) - 1);
+                } while (vib < 0 || vib > (schik - 1));
+                schik = 0;
+                foreach (var name in quiz.Qize)
+                {
+                    schik++;
+                    if ((schik - 1) == vib)
+                    {
+                        questions = name.Value;
+                        break;
+                    }
+                }
+                Console.Clear();
+                Console.WriteLine("Введите вопрос который хотите добавить!");
+                question = Console.ReadLine();
+                Console.Clear();
+                Console.WriteLine("Введите сейчас четыре ответа и их bool значение, то есть он правельный или нет(true/false).Так же помните как минимум один должен быть true");
+                bool four = true;
+                answers = new Dictionary<string, bool>();
+                do
+                {
+                    for (int a = 0; a < 4; a++)
+                    {
+                        Console.Write("Ответ->");
+                        answer = Console.ReadLine();
+                        Console.Write("Его bool значение->");
+                        do
+                        {
+                            znachStr = Console.ReadLine();
+                        } while (znachStr != "true" && znachStr != "false");
+                        znach = bool.Parse(znachStr);
+                        answers.Add(answer, znach);
+                        if (znach == true)
+                        {
+                            four = false;
+                        }
+                    }
+                    if (four == true)
+                    {
+                        answers = new Dictionary<string, bool>();
+                        Console.Clear();
+                        Console.WriteLine("Вы ввели ни одного значения true, заново введите четыре ответа и на этот раз как минимум одно значение true");
+                    }
+                } while (four);
+                questions.Add(question, answers);
+            }
+            return quiz;
+        }
+        //удаление темы
+        public Quiz deleteQize(Quiz quiz)
+        {
+            bool noOne = false;
+            if (quiz.Qize.Count > 1)
+            {
+                noOne = true;
+            }
+            string topic="будет";
+            Console.WriteLine("Введите тему которую хотите удалить!");
+            int vib;
+            string vibS;
+            int schik = 0;
+            foreach (var name in quiz.Qize)
+            {
+                schik++;
+                Console.WriteLine($"{schik} - {name.Key}");
+            }
+            do
+            {
+                do
+                {
+                    vibS = Console.ReadLine();
+                } while (into(vibS));
+                vib = (int.Parse(vibS) - 1);
+            } while (vib < 0 || vib > (schik - 1));
+            schik = 0;
+            foreach (var name in quiz.Qize)
+            {
+                schik++;
+                if ((schik - 1) == vib)
+                {
+                    topic = name.Key;
+                    break;
+                }
+            }
+            quiz.deleteTop(topic);
+            quiz.Qize.Remove(topic);
+            return quiz;
+        }
+        //удаление вопросса из темы
+        public Quiz deleteQuestion(Quiz quiz)
+        {
+            string question = "будет";
+            Dictionary<string, Dictionary<string, bool>> questions = new Dictionary<string, Dictionary<string, bool>>();
+            Dictionary<string, bool> answers = new Dictionary<string, bool>();
+            Console.WriteLine("Введите тему в которой хотите удалить вопрос!");
+            int vib;
+            string vibS;
+            int schik = 0;
+            foreach (var name in quiz.Qize)
+            {
+                schik++;
+                Console.WriteLine($"{schik} - {name.Key}");
+
+            }
+            do
+            {
+                do
+                {
+                    vibS = Console.ReadLine();
+                } while (into(vibS));
+
+                vib = (int.Parse(vibS) - 1);
+            } while (vib < 0 || vib > (schik - 1));
+            schik = 0;
+            foreach (var name in quiz.Qize)
+            {
+                schik++;
+                if ((schik - 1) == vib)
+                {
+                    questions = name.Value;
+
+                    break;
+                }
+            }
+            schik = 0;
+            bool noOne = false;
+            
+            if (questions.Count > 20)
+            {
+                noOne = true;
+            }
+
+            if (noOne)
+            {
+                Console.Clear();
+                Console.WriteLine("Выберите какой воспрос вы хотите удалить!");
+                foreach (var name in questions)
+                {
+                    schik++;
+                    Console.WriteLine($"{schik}) {name.Key}");
+
+                }
+                do
+                {
+                    do
+                    {
+                        vibS = Console.ReadLine();
+                    } while (into(vibS));
+
+                    vib = (int.Parse(vibS) - 1);
+                } while (vib < 0 || vib > (schik - 1));
+                schik = 0;
+                foreach (var name in questions)
+                {
+                    schik++;
+                    if ((schik - 1) == vib)
+                    {
+                        question = name.Key;
+                        break;
+                    }
+                }
+                questions.Remove(question);
+            }
+            else
+            {
+                Thread.Sleep(2000);
+                Console.WriteLine("В данной теме минимальное количество вопросов, вы не можете удалить из неё какой либо вопрос!");
+            }
+            return quiz;
+        }
+
+    }
+}
