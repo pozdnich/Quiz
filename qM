@@ -1,0 +1,605 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading.Tasks;
+using UnderToProgramm;
+using QuizEditor;
+
+namespace UnderToProgramm
+{
+    [Serializable]
+    struct rezult
+    {
+        public string Name { get; set; }
+        public string NameQize { get; set; }
+        public int rez { get; set; }
+        public DateTime date{ get; set; }
+        public string my()
+        {
+            return $"Тема викторины: {NameQize}\nРезультат викторины: {rez}\nДата прохождения викторины: {date}";
+        }
+        public string top(int b)
+        {
+            return $"{b}) {Name} {rez}";
+        }
+    }
+    [Serializable]
+    class Quiz
+    {
+        private Dictionary<string, Dictionary<string, Dictionary<string, bool>>> qize = new Dictionary<string, Dictionary<string, Dictionary<string, bool>>>();
+        public Dictionary<string, Dictionary<string, Dictionary<string, bool>>> Qize { get => qize; set => qize = value; }
+        public Dictionary<string, List<rezult>> Top20 { get => top20; set => top20 = value; }
+        private Dictionary<string, List<rezult>> top20= new Dictionary<string, List<rezult>>();
+        public void printTop20(string a)
+        {
+            List < rezult> rezults = Top20[a];
+            int schik = 1;
+            foreach (rezult g in rezults)
+            {
+                Console.WriteLine(g.top(schik));
+                schik++;
+            }
+        }
+        public void addNewTop(string a)
+        {
+            Top20.Add(a, new List<rezult>());
+        }
+        public void deleteTop(string a)
+        {
+            Top20.Remove(a);
+        }
+        public List<rezult> editTop20(rezult rezNew,string topic)
+        {
+            List<rezult> rezults = Top20[topic];
+            bool was=false;
+            bool change = false;
+            int index=0;
+            foreach (rezult g in rezults)
+            {
+                if(g.Name == rezNew.Name)
+                {
+                    was=true;
+                    if(g.rez< rezNew.rez)
+                    {
+                        change = true;
+                    }
+                    break;
+                }
+                index++;
+            }
+            if (was)
+            {
+                if (change)
+                {
+                    rezults.RemoveAt(index);
+                    index = 0;
+                    foreach (rezult g in rezults)
+                    {
+                        if(g.rez< rezNew.rez)
+                        {
+                            break;
+                        }
+                        index++;
+                    }
+                    rezults.Insert(index, rezNew);
+                }
+            }else if(rezults.Count == 0)
+            {
+                rezults.Add(rezNew);
+            }
+            else
+            {
+                index = 0;
+                foreach (rezult g in rezults)
+                {
+                    if (g.rez < rezNew.rez)
+                    {
+                        break;
+                    }
+                    index++;
+                }
+                rezults.Insert(index, rezNew);
+                if(rezults.Count > 20)
+                {
+                    rezults.RemoveAt(20);
+                }
+            }
+            return rezults;
+        }
+    }
+    [Serializable]
+    class user 
+    {
+        private string _log;
+        private string _password;
+        private DateTime _creation;
+        private List<rezult> past;
+        public user(string log, string password, DateTime creation, List<rezult> past)
+        {
+            _log = log;
+            _password = password;
+            _creation = creation;
+            this.Past = past;
+        }
+        public string Log { get => _log;  }
+        public string Password { get => _password; }
+        internal List<rezult> Past { get => past; set => past = value; }
+        public DateTime Creation { get => _creation;}
+
+        public void setPasswordAndCreation(string password,DateTime creation )
+        {
+            _creation = creation;
+            _password = password;
+        }
+        
+        public void getConsolePast()
+        {
+            foreach (rezult rezult in Past)
+            {
+                Console.WriteLine((Past.IndexOf(rezult)+1)+")\n"+rezult.my());
+            }
+        }
+        
+        public user AddPast(rezult a, user b)
+        {
+            b.Past.Add(a);
+            return b;
+        }
+    }
+}
+
+namespace ConsoleApp237
+{
+    class Program
+    {
+        static public user entrance(user userNow, List<user> users,string log,string password) 
+        {
+            bool successLog = true;
+            bool successPassword= true;
+            foreach (user user in users)
+            {
+                if(user.Log == log)
+                {
+                    successLog = false;
+                    if(user.Password== password)
+                    {
+                        successPassword= false;
+                    }
+                }
+            }
+            if (successLog)
+            {
+                Console.WriteLine("Пользователя " + log + " не существует, введите пороль и логин ещё раз, либо зарегестрирутесь как новый пользователь");
+            }
+            else if (successPassword)
+            {
+                Console.WriteLine("Пороль не подходит");
+            }
+            else
+            {
+                foreach (user user in users)
+                {
+                    if (user.Log == log)
+                    {
+                        userNow = user;
+                    }
+                }
+            }
+            return userNow;
+        }
+        static public user regist(user userNow, List<user> users)
+        {
+            string log;
+            string password;
+            DateTime birthday;
+            List<rezult> past = new List<rezult>();
+            bool reg = true;
+            while(reg)
+            {
+                reg = false;
+                Console.Write("Введите ваш логин: ");
+                do
+                {
+                    log = Console.ReadLine();
+                } while (log.Length == 0);
+                Console.Write("Введите ваш пороль: ");
+                do
+                {
+                    password = Console.ReadLine();
+                } while (password.Length == 0);
+                Console.WriteLine("Введите дату рождения(цифрами): ");
+                Console.Write("Год-> ");
+                int year=int.Parse(Console.ReadLine());
+                Console.Write("Месяц-> ");
+                int month = int.Parse(Console.ReadLine());
+                Console.Write("День-> ");
+                int day = int.Parse(Console.ReadLine());
+                birthday = new DateTime(year, month, day);
+                foreach (user p in users)
+                {
+                    if (p.Log == log)
+                    {
+                        Console.WriteLine("Пользователя " + log + " уже существует, введите другой логин");
+                        reg = true;
+                        break;
+                    }
+                }
+                if (reg== false)
+                {
+                    userNow = new user(log, password, birthday, past);
+                }
+            }
+            return userNow;
+        }
+        static public bool into(string a)
+        {
+            foreach (var item in a)
+            {
+                if (!char.IsDigit(item))
+                    return true;
+            }
+            return false;
+        }
+        static void Main(string[] args)
+        {
+           bool editAccess=true;
+            string log;
+            string password;
+            DateTime date;
+            user userNow=null;
+            editor admin=new editor();
+            List<user> users = new List<user>();
+            BinaryFormatter formater= new BinaryFormatter();
+            Quiz quiz = new Quiz();
+            if (File.Exists("users"))
+            {
+                var fili = File.OpenRead("users");
+                if (fili.Length != 0)
+                {
+                  users = (List<user>)formater.Deserialize(fili);
+                }
+                fili.Close();
+            }
+            else
+            {
+                File.Create("users").Close();
+            }
+            if (File.Exists("quiz"))
+            {
+                var fili = File.OpenRead("quiz");
+                if (fili.Length != 0)
+                {
+                    quiz = (Quiz)formater.Deserialize(fili);
+                }
+                fili.Close();
+            }
+            else
+            {
+                File.Create("quiz").Close();
+            }
+            do
+            {
+                Console.WriteLine("Выберите вариант для входа!");
+                Console.WriteLine("1 - Войти со своего аккаунта");
+                Console.WriteLine("2 - Зарегистрировать новый аккаунт");
+                Console.WriteLine("3 - Войти под аккаунтом редактора");
+                var knopka = Console.ReadKey().Key;
+                switch (knopka)
+                {
+                    case ConsoleKey.D1:
+                        Console.Clear();
+                        Console.WriteLine();
+                        Console.Write("Введите логин: ");
+                        log = Console.ReadLine();
+                        Console.WriteLine();
+                        Console.Write("Введите пороль: ");
+                        password = Console.ReadLine();
+                        Console.Clear();
+                        userNow = entrance(userNow, users, log, password);
+                        if(userNow != null)
+                        {
+                            Console.WriteLine("Вы вошли в свой аккаунт");
+                        }
+                        break;
+                    case ConsoleKey.D2:
+                        Console.WriteLine();
+                        userNow = regist(userNow, users);
+                        Console.Clear();
+                        if (userNow != null)
+                        {
+                            Console.WriteLine("Вы вошли в свой аккаунт");
+                        }
+                        break;
+                    case ConsoleKey.D3:
+                        Console.Clear();
+                        Console.WriteLine();
+                        Console.Write("Введите логин: ");
+                        log = Console.ReadLine();
+                        Console.WriteLine();
+                        Console.Write("Введите пороль: ");
+                        password = Console.ReadLine();
+                        Console.Clear();
+                        if (admin.Log1 != log)
+                        {
+                            Console.WriteLine("Вы ввели не правельный логин!");
+                        }else if(admin.Password1 != password)
+                        {
+                            Console.WriteLine("Вы ввели не правельный пороль!");
+                        }
+                        else
+                        {
+                            editAccess = false;
+                        }
+                        break;
+                        default:
+                        Console.Clear();
+                        break;
+                }
+            } while (userNow==null && editAccess);
+            if (editAccess)
+            {
+                bool game = true;
+                while (game)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Выберите варианты действия!");
+                    Console.WriteLine("1 - Стартовать новую викторину");
+                    Console.WriteLine("2 - Посмотреть результаты своих прошлых викторин");
+                    Console.WriteLine("3 - Посмотреть Топ-20 по конкретной викторине");
+                    Console.WriteLine("4 - изменить настройки: можно менять пароль и дату рождения");
+                    Console.WriteLine("5 - Выход");
+                    var knopka = Console.ReadKey().Key;
+                    int vib;
+                    string vibS;
+                    int schik = 0;
+                    switch (knopka)
+                    {
+                        case ConsoleKey.D1:
+                            Console.Clear();
+                            Console.WriteLine("Выберите викторину(тему) по которой хотите стартовать");
+                            schik = 0;
+                            foreach (var name in quiz.Qize)
+                            {
+                                schik++;
+                                Console.WriteLine($"{schik} - {name.Key}");
+                                
+                            }
+                            do
+                            {
+                                do
+                                {
+                                    vibS = Console.ReadLine();
+                                } while (into(vibS));
+                                vib = (int.Parse(vibS) - 1);
+                            } while (vib < 0 || vib > (schik - 1));
+                            schik = 0;
+                            foreach (var name in quiz.Qize)
+                            {
+                                schik++;
+                                if ((schik - 1) == vib)
+                                {
+                                    vibS = name.Key;
+
+                                    break;
+                                }
+
+                            }
+                            int rez=0;
+                            int vib2=1;
+                            bool answer = false;
+                            int kolAnswer=0;
+                            int schVopr = 1;
+                            foreach (var name in quiz.Qize[vibS])
+                            {
+                                Console.Clear();
+                                kolAnswer = 0;
+                                answer = false;
+                                Console.WriteLine("(Помните пока вы не введёте цифры что предоставлены дальнейшая работа программы не возможна,");
+                                Console.WriteLine("a так же помните что при повторном нажатии на правельный ответ вы не получите бал за вопрос)");
+                                Console.WriteLine($"{schVopr}/{quiz.Qize[vibS].Count}");
+                                Console.WriteLine(name.Key);
+                                schik = 0;
+                                foreach (var value in name.Value)
+                                {
+                                    schik++;
+                                    Console.WriteLine($"{schik}) {value.Key}");
+                                    if (value.Value)
+                                    {
+                                        kolAnswer++;
+                                    }
+                                }
+                                do
+                                {
+                                    do
+                                    {
+                                        vib = (int.Parse(Console.ReadLine()));
+                                    } while (vib < 1 || vib > 4);
+                                    schik = 0;
+                                    foreach (var value in name.Value)
+                                    {
+                                        schik++;
+                                        if(schik== vib)
+                                        {
+                                            if (value.Value)
+                                            {
+                                                kolAnswer--;
+                                            }
+                                            else
+                                            {
+                                                kolAnswer+10;
+                                            }
+                                        }
+                                    }
+                                    Console.WriteLine("Перейти на следующий вопрос?");
+                                    Console.WriteLine("1 - нет, есть ещё правельный(правельные) ответы");
+                                    Console.WriteLine("2 - да, здесь больше нету правельных ответов");
+                                    vib2 = (int.Parse(Console.ReadLine()));
+                                } while (vib2 != 2);
+                                if (kolAnswer == 0)
+                                {
+                                    rez++;
+                                }
+                                schVopr++;
+                            }
+                            rezult now =new rezult();
+                            now.Name = userNow.Log;
+                            now.NameQize = vibS;
+                            now.date = DateTime.Now;
+                            now.rez = rez;
+                            userNow= userNow.AddPast(now, userNow);
+                            quiz.Top20[vibS] = quiz.editTop20(now, now.NameQize);
+                            break;
+                        case ConsoleKey.D2:
+                            Console.Clear();
+                            userNow.getConsolePast();
+                            Console.WriteLine();
+                            Console.WriteLine("Для продолжения нажмиете любую клавишу...");
+                            Console.ReadKey();
+                            break;
+                        case ConsoleKey.D3:
+                            Console.Clear();
+                            Console.WriteLine("Выберите викторину(тему) по которой хотите посмотреть Топ-20");
+                            schik = 0;
+                            foreach (var name in quiz.Qize)
+                            {
+                                schik++;
+                                Console.WriteLine($"{schik} - {name.Key}");
+                            }
+                            do
+                            {
+                                do
+                                {
+                                    vibS = Console.ReadLine();
+                                } while (into(vibS));
+                                vib = (int.Parse(vibS) - 1);
+                            } while (vib < 0 || vib > (schik - 1));
+                            schik = 0;
+                            foreach (var name in quiz.Qize)
+                            {
+                                schik++;
+                                if ((schik - 1) == vib)
+                                {
+                                    vibS = name.Key;
+                                    break;
+                                }
+
+                            }
+                            Console.Clear();
+                            quiz.printTop20(vibS);
+                            Console.WriteLine();
+                            Console.WriteLine("Для продолжения нажмиете любую клавишу...");
+                            Console.ReadKey();
+                            break;
+                        case ConsoleKey.D4:
+                            Console.Clear();
+                            Console.WriteLine($"Пороль действующий: {userNow.Password}");
+                            Console.WriteLine($"Дата рождения действующая: {userNow.Creation}");
+                            Console.Write("Введите новый пороль->");
+                            password = Console.ReadLine();
+                            Console.WriteLine("Введите дату рождения(цифрами): ");
+                            Console.Write("Год-> ");
+                            int year = int.Parse(Console.ReadLine());
+                            Console.Write("Месяц-> ");
+                            int month = int.Parse(Console.ReadLine());
+                            Console.Write("День-> ");
+                            int day = int.Parse(Console.ReadLine());
+                            date = new DateTime(year, month, day);
+                            userNow.setPasswordAndCreation(password, date);
+                            break;
+                        case ConsoleKey.D5:
+                            game = false;
+                            break;
+                    }
+
+                }
+
+                int indexUser=0;
+                bool userExistence = false;
+                foreach (var user in users)
+                {
+                    if (user.Log == userNow.Log)
+                    {
+                        userExistence = true;
+                        break;
+                    }
+                    indexUser++;
+                }
+                if (userExistence)
+                {
+                    users.RemoveAt(indexUser);
+                    users.Add(userNow);
+                    var fili = File.Create("users");
+                    formater.Serialize(fili, users);
+                    fili.Close();
+                }
+                else
+                {
+                    users.Add(userNow);
+                    var fili = File.Create("users");
+                    formater.Serialize(fili, users);
+                    fili.Close();
+                }
+
+                var fileCr = File.Create("quiz");
+                fileCr.Close();
+                var filik = File.OpenWrite("quiz");
+
+                formater.Serialize(filik, quiz);
+
+                filik.Close();
+
+
+            }
+            else
+            {
+                bool game = true;
+                while (game)
+                {
+                    Console.Clear();
+                    Console.WriteLine("---Редактор викторин---");
+                    Console.WriteLine("Выберите варианты действия!");
+                    Console.WriteLine("1 - Создать новую викторину(тему)");
+                    Console.WriteLine("2 - Создать новый вопрос в конкретной векторине");
+                    Console.WriteLine("3 - Удалить викторину(тему)");
+                    Console.WriteLine("4 - Удалить вопрос в конкретной векторине");
+                    Console.WriteLine("5 - Выход");
+                    var knopka = Console.ReadKey().Key;
+                    switch (knopka)
+                    {
+                        case ConsoleKey.D1:
+                            Console.Clear();
+                            quiz=admin.addQize(quiz);
+                            break;
+                        case ConsoleKey.D2:
+                            Console.Clear();
+                            quiz = admin.addQizeQuestion(quiz);
+                            break;
+                        case ConsoleKey.D3:
+                            Console.Clear();
+                            quiz = admin.deleteQize(quiz);
+                            break;
+                        case ConsoleKey.D4:
+                            Console.Clear();
+                            quiz = admin.deleteQuestion(quiz);
+                            break;
+                        case ConsoleKey.D5:
+                            game=false;
+                            Console.Clear();
+                            break;
+
+                    }
+                }
+
+                var fileCr = File.Create("quiz");
+                fileCr.Close();
+                var filik = File.OpenWrite("quiz");
+                
+                    formater.Serialize(filik, quiz);
+
+                filik.Close();
+            }
+        }
+    }
+}
